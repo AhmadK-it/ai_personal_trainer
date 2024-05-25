@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Video Streaming</title>
+    {% load static %}
+</head>
+<body>
+    <h1>Video Streaming</h1>
+    <video id="video" autoplay></video>
+    <button id="start" >Start Streaming</button>
+    <script>
+const startButton = document.getElementById('start');
+const video = document.getElementById('video');
+let ws;
+let mediaRecorder;
+
+startButton.addEventListener('click', async () => {
+    try {
+        // Get user media stream
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        video.srcObject = stream;
+
+        // Establish WebSocket connection
+        ws = new WebSocket('ws://localhost:8000/ws/video/');
+
+        ws.onopen = () => {
+            console.log('WebSocket connection opened');
+
+            // Start media recorder once WebSocket connection is open
+            mediaRecorder = new MediaRecorder(stream);
+
+            mediaRecorder.ondataavailable = function(event) {
+                if (event.data.size > 0) {
+                    ws.send(event.data);
+                }
+            };
+
+            mediaRecorder.start(100);  // Send data in chunks of 100ms
+        };
+
+        ws.onmessage = (event) => {
+            console.log('Message from server:', event.data);
+        };
+
+        ws.onclose = () => {
+            console.log('WebSocket connection closed');
+            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                mediaRecorder.stop();
+            }
+        };
+
+        ws.onerror = (error) => {
+            console.error('WebSocket error:', error);
+        };
+    } catch (error) {
+        console.error('Error accessing user media:', error);
+    }
+});
+
+    </script>
+</body>
+</html>
