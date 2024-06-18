@@ -10,7 +10,7 @@ SECRET_KEY = 'django-insecure-_v4(!f5l!f4mv26eb2xq&0$5@%-3v_hug$f3dh9jgtxnezw-4u
 
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 AUTH_USER_MODEL = 'accounts.User'
 
@@ -27,7 +27,9 @@ INSTALLED_APPS = [
     'stream.apps.StreamConfig',
     'rest_framework',
     'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist',
     'channels',
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
