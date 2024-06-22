@@ -1,9 +1,11 @@
 import uuid 
 import os
 import aiofiles
+import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from asgiref.sync import sync_to_async
 from .models import VideoSession
+from datetime import datetime
 
 
 class VideoConsumerTestedEdition(AsyncWebsocketConsumer):
@@ -38,45 +40,58 @@ class VideoConsumerTestedEdition(AsyncWebsocketConsumer):
                 await f.write(bytes_data)
 
 
-class VideoConsumer(AsyncWebsocketConsumer):
+class VideoSessionConsumer(AsyncWebsocketConsumer):
     async def connect(self):
-        # Create a new video session and assign a unique room based on its ID
-        self.video_session = await sync_to_async(VideoSession.objects.create, thread_sensitive=True)(active=True)
-        self.room_name = f'video_room_{self.video_session.session_id}'
-        self.room_group_name = f'video_{self.room_name}'
-
-        # Join room group
+        
+        """
+        y. this function must be rechecked since the client could call deactivated session 
+        y. the client could call the function using any uuid he wants even if the session wasn't created resulting in db failuer
+        """
+        
+        
+        self.session_id = self.scope['url_route']['kwargs']['session_id']
+        self.room_group_name = f'session_{self.session_id}'
+        #. Join room group
         await self.channel_layer.group_add(
             self.room_group_name,
             self.channel_name
         )
         await self.accept()
+        
 
     async def disconnect(self, close_code):
-        # Set the session to inactive
-        await sync_to_async(self.set_session_inactive, thread_sensitive=True)(self.video_session)
-
-        # Leave room group
+        #. Leave room group
         await self.channel_layer.group_discard(
             self.room_group_name,
             self.channel_name
         )
-
+        print(f'disconnection for {self.room_group_name}')
+        
+        #. Retrieve and deactivate the session
+        video_session = await self.get_video_session(self.session_id)
+        await sync_to_async(self.set_session_inactive)(video_session)
+        
     async def receive(self, text_data=None, bytes_data=None):
-        if bytes_data:
-            # Ensure the directory exists
-            directory = 'video_uploads'
-            if not os.path.exists(directory):
-                os.makedirs(directory)
+            if bytes_data:
+                # Ensure the directory exists
+                directory = 'video_uploads'
+                if not os.path.exists(directory):
+                    os.makedirs(directory)
 
-            # Save file using the video session's session_id
-            file_path = os.path.join(directory, f'{self.video_session.session_id}.webm')
-            async with aiofiles.open(file_path, 'ab') as f:
-                await f.write(bytes_data)
+                # Save file using the video session's session_id
+                file_path = os.path.join(directory, f'{self.session_id}.webm')
+                async with aiofiles.open(file_path, 'ab') as f:
+                    await f.write(bytes_data)
 
     @staticmethod
     def set_session_inactive(video_session):
         # Mark the session as inactive in the database
         video_session.active = False
+        video_session.end_time= datetime.now()
         video_session.save()
+        
+    @staticmethod
+    async def get_video_session(session_id):
+        # Asynchronously get the video session instance
+        return await sync_to_async(VideoSession.objects.get)(session_id=session_id)
 
