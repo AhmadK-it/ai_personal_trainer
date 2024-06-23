@@ -19,10 +19,9 @@ startButton.addEventListener('click', async () => {
         // Get user media stream
         const stream = await navigator.mediaDevices.getUserMedia({ video: true });
         video.srcObject = stream;
-        const host = '0.0.0.0' || 'localhost' || process.env.HOST
-        const port = 8001 || 8000 || process.env.PORT
+
         // Establish WebSocket connection
-        ws = new WebSocket(`ws://${host}:${port}/ws/video/`);
+        ws = new WebSocket(`wss://ai-personal-trainer.onrender.com/ws/video/`);
 
         ws.onopen = () => {
             console.log('WebSocket connection opened');
