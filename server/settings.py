@@ -12,6 +12,10 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
+CSRF_TRUSTED_ORIGINS = [
+    'https://ai-personal-trainer.onrender.com'
+]
+
 AUTH_USER_MODEL = 'accounts.User'
 
 # Application definition
