@@ -12,7 +12,7 @@ y. the reasone why this request is critic and couldn't be removed is the user se
 y. then connection for specific user session socket - in favor of async operation 
 
 """
-@api_view(['POST'])
+@api_view(['GET'])
 @permission_classes((IsAuthenticated, ))
 def start_session(req):
     new_session = VideoSession.objects.create(active=True)
@@ -33,6 +33,7 @@ y. it is enough to have the socket colsed to end the session
 
 """
 @api_view(['POST'])
+@permission_classes((IsAuthenticated, ))
 def end_session(req):
     try:
         session_id=req.data['session_id']
