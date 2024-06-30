@@ -79,10 +79,13 @@ class VideoSessionConsumer(AsyncWebsocketConsumer):
                 directory = 'video_uploads'
                 if not os.path.exists(directory):
                     os.makedirs(directory)
-
+                    print('created')
+                print('already exists')
                 # Save file using the video session's session_id
                 file_path = os.path.join(directory, f'{self.session_id}.webm')
+                print(f'file path : {file_path}')
                 async with aiofiles.open(file_path, 'ab') as f:
+                    print(f'it is working baby {self.session_id}')
                     await f.write(bytes_data)
 
     @staticmethod
