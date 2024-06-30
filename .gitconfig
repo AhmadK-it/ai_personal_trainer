@@ -1,0 +1,9 @@
+[user]
+	email = khadourahmad020@gmail.com
+	username = AhmadK-it
+[credential]
+	helper = osxkeychain
+[init]
+	defaultBranch = master
+[color]
+	ui = auto

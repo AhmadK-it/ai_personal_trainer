@@ -21,7 +21,7 @@ startButton.addEventListener('click', async () => {
         video.srcObject = stream;
 
         // Establish WebSocket connection
-        ws = new WebSocket(`wss://ai-personal-trainer.onrender.com/ws/video/`);
+        ws = new WebSocket(`ws://ai-personal-trainer.onrender.com/ws/video/`);
 
         ws.onopen = () => {
             console.log('WebSocket connection opened');
