@@ -34,10 +34,12 @@ class VideoConsumerTestedEdition(AsyncWebsocketConsumer):
             directory = 'video_uploads'
             if not os.path.exists(directory):
                 os.makedirs(directory)
-
+                print('done creating the folder')
             file_path = os.path.join(directory, f'{self.room_id}.webm')
             async with aiofiles.open(file_path, 'ab') as f:
+                print('working')
                 await f.write(bytes_data)
+                print('working')
 
 
 class VideoSessionConsumer(AsyncWebsocketConsumer):
