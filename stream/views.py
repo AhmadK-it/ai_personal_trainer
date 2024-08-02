@@ -79,3 +79,14 @@ def video_files(request):
             })
     
     return Response({"videos": video_files})
+
+def video_browser(request):
+    video_path = os.path.join('server', 'static', 'videos')
+    videos = []
+    
+    if os.path.exists(video_path):
+        for filename in os.listdir(video_path):
+            if filename.endswith(('.mp4', '.avi', '.mov', '.mkv','.webm')):
+                videos.append(filename)
+    
+    return render(request, 'video_browser.html', {'videos': videos})

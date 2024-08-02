@@ -1,0 +1,74 @@
+# server/templates/video_browser.html
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Browser</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+        .container {
+            display: flex;
+            gap: 20px;
+        }
+        #video-list {
+            list-style-type: none;
+            padding: 0;
+            width: 300px;
+            flex-shrink: 0;
+        }
+        #video-list li {
+            cursor: pointer;
+            padding: 10px;
+            background-color: #f0f0f0;
+            margin-bottom: 5px;
+            border-radius: 5px;
+        }
+        #video-list li:hover {
+            background-color: #e0e0e0;
+        }
+        #video-player {
+            flex-grow: 1;
+        }
+        video {
+            width: 100%;
+            max-height: 500px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Video Browser</h1>
+    <div class="container">
+        <ul id="video-list">
+            {% for video in videos %}
+                <li onclick="playVideo('{{ video }}')">{{ video }}</li>
+            {% empty %}
+                <li>No videos found</li>
+            {% endfor %}
+        </ul>
+        <div id="video-player">
+            <video controls>
+                <source src="" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+        </div>
+    </div>
+
+    <script>
+        function playVideo(filename) {
+            const videoPlayer = document.querySelector('#video-player video');
+            videoPlayer.src = `/static/videos/${filename}`;
+            videoPlayer.play();
+        }
+    </script>
+</body>
+</html>
