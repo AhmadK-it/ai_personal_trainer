@@ -61,7 +61,7 @@ def video_stream(req):
 
 @api_view(['GET'])
 def video_files(request):
-    video_path = os.path.join(settings.BASE_DIR, 'static', 'videos')
+    video_path = os.path.join('server', 'static', 'videos')
     
     if not os.path.exists(video_path):
         return Response({"error": "Video directory does not exist"}, status=status.HTTP_404_NOT_FOUND)
