@@ -2,7 +2,7 @@ from django.shortcuts import render
 from rest_framework import status
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from .serializers import UserLoginSerializer, UserRegisterSerializer, UserLogoutSerializer
 
 class RegisterUserView(GenericAPIView):
@@ -27,6 +27,7 @@ class RegisterUserView(GenericAPIView):
 
 class LoginUserView(GenericAPIView):
     serializer_class=UserLoginSerializer
+    # permission_classes=[AllowAny]
     def post(self,req):
         serializer=self.serializer_class(data=req.data, context={'request': req})
         serializer.is_valid(raise_exception=True)
