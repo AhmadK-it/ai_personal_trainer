@@ -68,7 +68,7 @@ def video_files(request):
     
     video_files = []
     for filename in os.listdir(video_path):
-        if filename.endswith(('.mp4', '.avi', '.mov', '.mkv')):  # Add or remove video extensions as needed
+        if filename.endswith(('.mp4', '.avi', '.mov', '.mkv', '.webm')):  # Add or remove video extensions as needed
             file_path = os.path.join(video_path, filename)
             file_stats = os.stat(file_path)
             video_files.append({
