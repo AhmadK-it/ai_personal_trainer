@@ -8,6 +8,7 @@ from .models import VideoSession
 from .serializers import DirectoryPathSerializer
 from datetime import datetime
 import os
+from django.conf import settings
 """
 y. the reasone why this request is critic and couldn't be removed is the user session must be created first
 y. then connection for specific user session socket - in favor of async operation
