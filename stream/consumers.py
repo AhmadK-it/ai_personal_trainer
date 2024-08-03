@@ -50,7 +50,6 @@ class VideoSessionConsumer(AsyncWebsocketConsumer):
         y. the client could call the function using any uuid he wants even if the session wasn't created resulting in db failuer
         """
 
-        
         self.session_id = self.scope['url_route']['kwargs']['session_id']
         self.room_group_name = f'session_{self.session_id}'
         # Validate session_id
@@ -182,7 +181,7 @@ class JSONSessionConsumer(AsyncWebsocketConsumer):
         
 
     @database_sync_to_async
-    def deactivate_session(self, session_id):
+    async def deactivate_session(self, session_id):
         video_session = await self.get_video_session(session_id)
         await sync_to_async(self.set_session_inactive)(video_session)
         
