@@ -6,7 +6,8 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 from asgiref.sync import sync_to_async
 from .models import VideoSession
 from datetime import datetime
-
+from channels.db import database_sync_to_async
+from django.core.exceptions import ObjectDoesNotExist
 
 class VideoConsumerTestedEdition(AsyncWebsocketConsumer):
     async def connect(self):
