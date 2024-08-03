@@ -8,175 +8,374 @@
     <link rel="icon" type="image/png" href="{% static 'images/favicon2.png' %}">
     <style>
         @import url("https://fonts.googleapis.com/css2?family=Open+Sans:wght@800&family=Roboto:wght@100;300&display=swap");
-:root {
-  --button: #b3b3b3;
-  --button-color: #0a0a0a;
-  --shadow: #000;
-  --bg: #737373;
-  --header: #7a7a7a;
-  --color: #fafafa;
-  --lit-header: #e6e6e6;
-  --speed: 2s;
-}
-* {
-  box-sizing: border-box;
-  transform-style: preserve-3d;
-}
-@property --swing-x {
-  initial-value: 0;
-  inherits: false;
-  syntax: '<integer>';
-}
-@property --swing-y {
-  initial-value: 0;
-  inherits: false;
-  syntax: '<integer>';
-}
-body {
-  min-height: 100vh;
-  display: flex;
-  font-family: 'Roboto', sans-serif;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  background: var(--bg);
-  color: var(--color);
-  perspective: 1200px;
-}
-a {
-  text-transform: uppercase;
-  text-decoration: none;
-  background: var(--button);
-  color: var(--button-color);
-  padding: 1rem 4rem;
-  border-radius: 4rem;
-  font-size: 0.875rem;
-  letter-spacing: 0.05rem;
-}
-p {
-  font-weight: 100;
-}
-h1 {
-  animation: swing var(--speed) infinite alternate ease-in-out;
-  font-size: clamp(5rem, 40vmin, 20rem);
-  font-family: 'Open Sans', sans-serif;
-  margin: 0;
-  margin-bottom: 1rem;
-  letter-spacing: 1rem;
-  transform: translate3d(0, 0, 0vmin);
-  --x: calc(50% + (var(--swing-x) * 0.5) * 1%);
-  background: radial-gradient(var(--lit-header), var(--header) 45%) var(--x) 100%/200% 200%;
-  -webkit-background-clip: text;
-  color: transparent;
-}
-h1:after {
-  animation: swing var(--speed) infinite alternate ease-in-out;
-  content: "404";
-  position: absolute;
-  top: 0;
-  left: 0;
-  color: var(--shadow);
-  filter: blur(1.5vmin);
-  transform: scale(1.05) translate3d(0, 12%, -10vmin) translate(calc((var(--swing-x, 0) * 0.05) * 1%), calc((var(--swing-y) * 0.05) * 1%));
-}
-.cloak {
-  animation: swing var(--speed) infinite alternate-reverse ease-in-out;
-  height: 100%;
-  width: 100%;
-  transform-origin: 50% 30%;
-  transform: rotate(calc(var(--swing-x) * -0.25deg));
-  background: radial-gradient(40% 40% at 50% 42%, transparent, #000 35%);
-}
-.cloak__wrapper {
-  position: fixed;
-  top: 0;
-  left: 0;
-  bottom: 0;
-  right: 0;
-  overflow: hidden;
-}
-.cloak__container {
-  height: 250vmax;
-  width: 250vmax;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-}
-.info {
-  text-align: center;
-  line-height: 1.5;
-  max-width: clamp(16rem, 90vmin, 25rem);
-}
-.info > p {
-  margin-bottom: 3rem;
-}
-@-moz-keyframes swing {
-  0% {
-    --swing-x: -100;
-    --swing-y: -100;
-  }
-  50% {
-    --swing-y: 0;
-  }
-  100% {
-    --swing-y: -100;
-    --swing-x: 100;
-  }
-}
-@-webkit-keyframes swing {
-  0% {
-    --swing-x: -100;
-    --swing-y: -100;
-  }
-  50% {
-    --swing-y: 0;
-  }
-  100% {
-    --swing-y: -100;
-    --swing-x: 100;
-  }
-}
-@-o-keyframes swing {
-  0% {
-    --swing-x: -100;
-    --swing-y: -100;
-  }
-  50% {
-    --swing-y: 0;
-  }
-  100% {
-    --swing-y: -100;
-    --swing-x: 100;
-  }
-}
-@keyframes swing {
-  0% {
-    --swing-x: -100;
-    --swing-y: -100;
-  }
-  50% {
-    --swing-y: 0;
-  }
-  100% {
-    --swing-y: -100;
-    --swing-x: 100;
-  }
-}
+        @import url("https://fonts.googleapis.com/css2?family=Oswald:wght@200;600&display=swap");
 
+        :root {
+            --button: #b3b3b3;
+            --button-color: #0a0a0a;
+            --shadow: #000;
+            --bg: #737373;
+            --header: #7a7a7a;
+            --color: #fafafa;
+            --lit-header: #e6e6e6;
+            --speed: 2s;
+        }
+
+        * {
+            box-sizing: border-box;
+            transform-style: preserve-3d;
+        }
+
+        @property --swing-x {
+            initial-value: 0;
+            inherits: false;
+            syntax: '<integer>';
+        }
+
+        @property --swing-y {
+            initial-value: 0;
+            inherits: false;
+            syntax: '<integer>';
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            font-family: 'Roboto', sans-serif;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg);
+            color: var(--color);
+            perspective: 1200px;
+        }
+
+        a {
+            text-transform: uppercase;
+            text-decoration: none;
+            background: var(--button);
+            color: var(--button-color);
+            padding: 1rem 4rem;
+            border-radius: 4rem;
+            font-size: 0.875rem;
+            letter-spacing: 0.05rem;
+        }
+
+        p {
+            font-weight: 100;
+        }
+
+        h1 {
+            animation: swing var(--speed) infinite alternate ease-in-out;
+            font-size: clamp(5rem, 40vmin, 20rem);
+            font-family: 'Open Sans', sans-serif;
+            margin: 0;
+            margin-bottom: 1rem;
+            letter-spacing: 1rem;
+            transform: translate3d(0, 0, 0vmin);
+            --x: calc(50% + (var(--swing-x) * 0.5) * 1%);
+            background: radial-gradient(var(--lit-header), var(--header) 45%) var(--x) 100%/200% 200%;
+            -webkit-background-clip: text;
+            color: transparent;
+        }
+
+        h1:after {
+            animation: swing var(--speed) infinite alternate ease-in-out;
+            content: "404";
+            position: absolute;
+            top: 0;
+            left: 0;
+            color: var(--shadow);
+            filter: blur(1.5vmin);
+            transform: scale(1.05) translate3d(0, 12%, -10vmin) translate(calc((var(--swing-x, 0) * 0.05) * 1%), calc((var(--swing-y) * 0.05) * 1%));
+        }
+
+        .cloak {
+            animation: swing var(--speed) infinite alternate-reverse ease-in-out;
+            height: 100%;
+            width: 100%;
+            transform-origin: 50% 30%;
+            transform: rotate(calc(var(--swing-x) * -0.25deg));
+            background: radial-gradient(40% 40% at 50% 42%, transparent, #000 35%);
+        }
+
+        .cloak__wrapper {
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+            overflow: hidden;
+        }
+
+        .cloak__container {
+            height: 250vmax;
+            width: 250vmax;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .info {
+            text-align: center;
+            line-height: 1.5;
+            max-width: clamp(16rem, 90vmin, 25rem);
+        }
+
+        .info > p {
+            margin-bottom: 3rem;
+        }
+
+        @-moz-keyframes swing {
+            0% {
+                --swing-x: -100;
+                --swing-y: -100;
+            }
+
+            50% {
+                --swing-y: 0;
+            }
+
+            100% {
+                --swing-y: -100;
+                --swing-x: 100;
+            }
+        }
+
+        @-webkit-keyframes swing {
+            0% {
+                --swing-x: -100;
+                --swing-y: -100;
+            }
+
+            50% {
+                --swing-y: 0;
+            }
+
+            100% {
+                --swing-y: -100;
+                --swing-x: 100;
+            }
+        }
+
+        @-o-keyframes swing {
+            0% {
+                --swing-x: -100;
+                --swing-y: -100;
+            }
+
+            50% {
+                --swing-y: 0;
+            }
+
+            100% {
+                --swing-y: -100;
+                --swing-x: 100;
+            }
+        }
+
+        @keyframes swing {
+            0% {
+                --swing-x: -100;
+                --swing-y: -100;
+            }
+
+            50% {
+                --swing-y: 0;
+            }
+
+            100% {
+                --swing-y: -100;
+                --swing-x: 100;
+            }
+        }
+
+        /* New CSS Code */
+        body {
+            font-family: "Oswald", sans-serif;
+            background-color: #212121;
+        }
+
+        body section {
+            width: 90%;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        body section .row {
+            align-items: center;
+            height: 50vh;
+        }
+
+        .card {
+            position: relative;
+            height: 400px;
+            width: 100%;
+            margin: 10px 0;
+            transition: ease all 2.3s;
+            perspective: 1000px;
+        }
+
+        .card:hover .cover {
+            transform: rotateX(0deg) rotateY(-180deg);
+        }
+
+        .card:hover .cover:before {
+            transform: translateZ(30px);
+        }
+
+        .card:hover .cover:after {
+            background-color: black;
+        }
+
+        .card:hover .cover h1 {
+            transform: translateZ(100px);
+        }
+
+        .card:hover .cover .price {
+            transform: translateZ(60px);
+        }
+
+        .card:hover .cover a {
+            transform: translateZ(-60px) rotatey(-180deg);
+        }
+
+        .card .cover {
+            position: absolute;
+            height: 80%;
+            width: 100%;
+            transform-style: preserve-3d;
+            transition: ease all 2.3s;
+            background-size: cover;
+            background-position: center center;
+            background-repeat: no-repeat;
+        }
+
+        .card .cover:before {
+            content: "";
+            position: absolute;
+            border: 5px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 0 12px rgba(0, 0, 0, 0.3);
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            bottom: 20px;
+            z-index: 2;
+            transition: ease all 2.3s;
+            transform-style: preserve-3d;
+            transform: translateZ(0px);
+        }
+
+        .card .cover:after {
+            content: "";
+            position: absolute;
+            top: 0px;
+            left: 0px;
+            right: 0px;
+            bottom: 0px;
+            z-index: 2;
+            transition: ease all 1.3s;
+            background: rgba(0, 0, 0, 0.4);
+        }
+
+        .card .cover.item-b {
+            background-image: url("{% static 'images/Home.png' %}");
+        }
+
+        .card .cover h1 {
+            font-weight: 600;
+            position: absolute;
+            bottom: 55px;
+            left: 50px;
+            color: white;
+            transform-style: preserve-3d;
+            transition: ease all 2.3s;
+            z-index: 3;
+            font-size: 3em;
+            transform: translateZ(0px);
+        }
+
+        .card .cover .price {
+            font-weight: 200;
+            position: absolute;
+            top: 55px;
+            right: 50px;
+            color: white;
+            transform-style: preserve-3d;
+            transition: ease all 2.3s;
+            z-index: 4;
+            font-size: 2em;
+            transform: translateZ(0px);
+        }
+
+        .card .card-back {
+            position: absolute;
+            height: 80%;
+            width: 80%;
+            background: #0b0f08;
+            transform-style: preserve-3d;
+            transition: ease all 2.3s;
+            transform: translateZ(-1px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .card .card-back a {
+            transform-style: preserve-3d;
+            transition: ease transform 2.3s, ease background 0.5s;
+            transform: translateZ(-1px) rotatey(-180deg);
+            background: transparent;
+            border: 1px solid white;
+            font-weight: 200;
+            font-size: 1.3em;
+            color: white;
+            padding: 14px 32px;
+            outline: none;
+            text-decoration: none;
+        }
+
+        .card .card-back a:hover {
+            background-color: white;
+            color: #0b0f08;
+        }
     </style>
 </head>
 <body>
-    
-<h1>404</h1>
+
+<h1>AI Personal Trainer</h1>
 <div class="cloak__wrapper">
-  <div class="cloak__container">
-    <div class="cloak"></div>
-  </div>
+    <div class="cloak__container">
+        <div class="cloak"></div>
+    </div>
 </div>
 <div class="info">
-  <h2>We can't find that page</h2>
-  <p>We're fairly sure that page used to be here, but seems to have gone missing. We do apologise on it's behalf.</p><a href="https://github.com/AhmadK-it/ai_personal_trainer/tree/master" target="_blank" rel="noreferrer noopener">See Docs</a>
+    <h2>AI Masters Dev Team</h2>
+    <p>We're group of ai enginerrs with passion about ML and new technologies</p>
+    <p>Need more info about the app?</p>
+    <a href="https://github.com/AhmadK-it/ai_personal_trainer/tree/master" target="_blank" rel="noreferrer noopener">See Docs</a>
 </div>
+<br>
+<br>
+<br>
+<br>
+<br>
+<section>
+    <div class="row">
+        <div class="col-md-4 col-sm-6 col-xs-12">
+            <div class="card">
+                <div class="cover item-b">
+                    <h1>Home<br>Page</h1>
+                    <span class="price"><a href="https://icons8.com/icon/tJuSjypgO5YW/download">Download App</a></span>
+                    <div class="card-back">
+                        <a href="#">Get it Now !</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
 </body>
 </html>
