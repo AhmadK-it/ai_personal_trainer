@@ -191,6 +191,6 @@ class JSONSessionConsumer(AsyncWebsocketConsumer):
         # Implement your data processing logic here
         # This is where you would handle the received data and generate a response
         
-        processed_data = {'result': f'hey yoo {data['name']}'}
+        processed_data = {'result': f'hey yoo {data["name"]}'}
         return processed_data
         
