@@ -141,7 +141,7 @@ class JSONSessionConsumer(AsyncWebsocketConsumer):
         
         # Deactivate the session
         session = await self.get_session(self.session_id)
-        self.deactivate_session(session)
+        await sync_to_async(self.deactivate_session)(session)
 
     async def receive(self, text_data):
         try:
