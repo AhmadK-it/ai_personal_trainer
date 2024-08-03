@@ -140,7 +140,8 @@ class JSONSessionConsumer(AsyncWebsocketConsumer):
         )
         
         # Deactivate the session
-        await self.deactivate_session(self.session_id)
+        session = await self.get_session(self.session_id)
+        self.deactivate_session(session)
 
     async def receive(self, text_data):
         try:
@@ -181,11 +182,23 @@ class JSONSessionConsumer(AsyncWebsocketConsumer):
             return False
         
 
-    @database_sync_to_async
-    async def deactivate_session(self, session_id):
-        video_session = await self.get_video_session(session_id)
-        await sync_to_async(self.set_session_inactive)(video_session)
+    # @database_sync_to_async
+    # def deactivate_session(self, session_id):
+    #     video_session = await self.get_video_session(session_id)
+    #     await sync_to_async(self.set_session_inactive)(video_session)
         
+        
+    @staticmethod
+    def deactivate_session(video_session):
+        # Mark the session as inactive in the database
+        video_session.active = False
+        video_session.end_time= datetime.now()
+        video_session.save()
+        
+    @staticmethod
+    async def get_session(session_id):
+        # Asynchronously get the video session instance
+        return await sync_to_async(VideoSession.objects.get)(session_id=session_id)
 
     async def process_client_data(self, data):
         # Implement your data processing logic here
