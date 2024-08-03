@@ -97,7 +97,7 @@ class VideoSessionConsumer(AsyncWebsocketConsumer):
         # Implement your session validation logic here
         # For example:
         try:
-            session = VideoSession.objects.get(session_id=session_id, is_active=True)
+            session = VideoSession.objects.get(session_id=session_id, active=True)
             return True
         except ObjectDoesNotExist:
             return False
@@ -176,7 +176,7 @@ class JSONSessionConsumer(AsyncWebsocketConsumer):
         # Implement your session validation logic here
         # For example:
         try:
-            session = VideoSession.objects.get(session_id=session_id, is_active=True)
+            session = VideoSession.objects.get(session_id=session_id, active=True)
             return True
         except ObjectDoesNotExist:
             return False
