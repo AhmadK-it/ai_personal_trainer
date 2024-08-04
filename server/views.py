@@ -7,4 +7,4 @@ logger = logging.getLogger(__name__)
 # @api_view(['GET','POST'])
 def home(req):
     logger.info(f"Home view called with method: {req.method}")
-    return render(request=req, template_name='home2.html')
+    return render(request=req, template_name='home.html')
