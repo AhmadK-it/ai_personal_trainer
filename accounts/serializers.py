@@ -65,3 +65,13 @@ class UserLogoutSerializer(serializers.Serializer):
             token.blacklist()
         except TokenError:
             return self.fail('bad_token')
+
+class UserProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserProfile
+        fields = ['age', 'gender', 'weight', 'height', 'body_fat', 'goal', 'lifestyle_intensity', 'recommended_calories']
+
+class UserProfileUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserProfile
+        fields = ['age', 'gender', 'weight', 'height', 'body_fat', 'goal', 'lifestyle_intensity']

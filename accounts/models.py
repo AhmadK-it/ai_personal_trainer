@@ -32,3 +32,25 @@ class User(AbstractBaseUser, PermissionsMixin):
             'refresh': str(refresh),
             'access': str(refresh.access_token),
         }
+
+class UserProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    age = models.IntegerField()
+    gender = models.CharField(max_length=10, choices=[('male', 'Male'), ('female', 'Female')])
+    weight = models.FloatField()  # in kg
+    height = models.FloatField()  # in cm
+    body_fat = models.FloatField()  # in percentage
+    goal = models.CharField(max_length=20, choices=[
+        ('weight_loss', 'Weight Loss'),
+        ('weight_gain', 'Weight Gain'),
+        ('muscle_gain', 'Muscle Gain')
+    ])
+    lifestyle_intensity = models.CharField(max_length=20, choices=[
+        ('sedentary', 'Sedentary'),
+        ('moderate', 'Moderate'),
+        ('intensive', 'Intensive')
+    ])
+    recommended_calories = models.FloatField(default=0)
+
+    def __str__(self):
+        return f"{self.user.username}'s Profile"

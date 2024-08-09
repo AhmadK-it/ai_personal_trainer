@@ -22,5 +22,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('stream/', include('stream.urls')),
     path('exercises/', include('exercises.urls')),
+    path('meals/', include('meal_planner.urls')),
     path('api/auth/', include('accounts.urls')),
 ]

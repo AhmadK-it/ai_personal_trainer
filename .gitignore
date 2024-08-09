@@ -3,3 +3,4 @@ video_uploads/
 .accessToken
 pyrightconfig.json
 .gitconfig
+server/static/dataFiles

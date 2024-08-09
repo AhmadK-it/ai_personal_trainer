@@ -29,6 +29,7 @@ INSTALLED_APPS = [
     'accounts.apps.AccountsConfig',
     'stream.apps.StreamConfig',
     'exercises.apps.ExercisesConfig',
+    'meal_planner.apps.MealPlannerConfig',
     'rest_framework',
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
