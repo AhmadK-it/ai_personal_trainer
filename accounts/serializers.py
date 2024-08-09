@@ -2,7 +2,7 @@ from django.contrib.auth import authenticate
 from rest_framework import serializers
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework_simplejwt.tokens import RefreshToken, TokenError
-from .models import User
+from .models import User, UserProfile
 
 class UserRegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(max_length=255, min_length=6, write_only=True)
