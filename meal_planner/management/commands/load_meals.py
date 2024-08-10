@@ -1,6 +1,6 @@
 import csv
 from django.core.management.base import BaseCommand
-from meals.models import Meal
+from meal_planner.models import Meal
 
 class Command(BaseCommand):
     help = 'Load meals data from CSV file'
