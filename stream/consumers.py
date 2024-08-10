@@ -88,7 +88,7 @@ class VideoSessionConsumer(AsyncWebsocketConsumer):
             if bytes_data:
                 # Ensure the directory exists
                 print(type(bytes_data), self.session_id)
-                await self.send(bytes_data)
+                # await self.send(bytes_data)
                 directory = 'server/static/videos'
                 if not os.path.exists(directory):
                     os.makedirs(directory)
