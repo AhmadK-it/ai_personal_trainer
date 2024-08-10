@@ -6,7 +6,7 @@ import base64
 import cv2
 import numpy as np
 import mediapipe as mp
-import tensorflow as ts
+import tensorflow as tf
 from collections import deque
 from channels.generic.websocket import AsyncWebsocketConsumer
 from asgiref.sync import sync_to_async
