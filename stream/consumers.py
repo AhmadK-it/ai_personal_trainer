@@ -88,10 +88,7 @@ class VideoSessionConsumer(AsyncWebsocketConsumer):
             if bytes_data:
                 # Ensure the directory exists
                 print(type(bytes_data), self.session_id)
-                await self.send({
-                    'type': 'server_response',
-                    'data': bytes_data
-                })
+                await self.send(bytes_data)
                 directory = 'server/static/videos'
                 if not os.path.exists(directory):
                     os.makedirs(directory)
@@ -102,7 +99,7 @@ class VideoSessionConsumer(AsyncWebsocketConsumer):
 
     
     async def send_json_to_client(self, data):
-        await self.send(text_data=json.dumps)
+        await self.send(text_data=json.dumps(data))
     
     @database_sync_to_async
     def is_valid_session(self, session_id):
