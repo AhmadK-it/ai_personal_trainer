@@ -25,7 +25,6 @@ djangorestframework-simplejwt==5.3.1
 experta==1.9.4
 flatbuffers==24.3.25
 fonttools==4.53.1
-frozendict==1.2
 gast==0.6.0
 google-pasta==0.2.0
 grpcio==1.65.4
@@ -89,3 +88,4 @@ Werkzeug==3.0.3
 whitenoise==6.6.0
 wrapt==1.16.0
 zope.interface==6.4.post2
+./dist/frozendict-0.1.tar.gz
