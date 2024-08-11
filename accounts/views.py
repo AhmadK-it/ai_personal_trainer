@@ -79,13 +79,13 @@ def user_profile(request):
         if profile:
             return Response({"msg": "Profile already exists"}, status=status.HTTP_400_BAD_REQUEST,  content_type='application/json')
         
-        serializer = UserProfileUpdateSerializer(data=request.data)
+        serializer = UserProfileUpdateSerializer(data=request.data.get('profile',{}))
         if serializer.is_valid():
             serializer.save(user=request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED , content_type='application/json')
         return Response({
                     'msg': f'{serializer.errors}',
-                    'data': f'{req.data}'
+                    'data': f'{request.data}'
                 }, status=status.HTTP_400_BAD_REQUEST, content_type='application/json')
 
 @api_view(['PUT'])
@@ -97,7 +97,7 @@ def update_user_profile(request):
     except UserProfile.DoesNotExist:
         return Response({"msg": "Profile not found"}, status=status.HTTP_404_NOT_FOUND,  content_type='application/json')
 
-    serializer = UserProfileUpdateSerializer(profile, data=request.data, partial=True)
+    serializer = UserProfileUpdateSerializer(profile, data=request.data.get('profile',{}), partial=True)
     if serializer.is_valid():
         serializer.save()
         return Response({
@@ -108,5 +108,5 @@ def update_user_profile(request):
                             content_type='application/json')
     return Response({
                     'msg': f'{serializer.errors}',
-                    'data': f'{req.data}'
+                    'data': f'{request.data}'
                 }, status=status.HTTP_400_BAD_REQUEST, content_type='application/json')

@@ -69,9 +69,9 @@ class UserLogoutSerializer(serializers.Serializer):
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
-        fields = ['age', 'gender', 'weight', 'height', 'body_fat', 'goal', 'lifestyle_intensity', 'recommended_calories']
+        fields = ['age', 'gender', 'weight', 'height', 'body_fat', 'goal', 'lifestyle_intensity', 'recommended_calories', 'weakness_points', 'experience_level']
 
 class UserProfileUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
-        fields = ['age', 'gender', 'weight', 'height', 'body_fat', 'goal', 'lifestyle_intensity']
+        fields = ['age', 'gender', 'weight', 'height', 'body_fat', 'goal', 'lifestyle_intensity', 'recommended_calories', 'weakness_points', 'experience_level']

@@ -2,26 +2,57 @@ from rest_framework.decorators import api_view, permission_classes, authenticati
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework import status
 from accounts.models import UserProfile
 from django.shortcuts import get_object_or_404
-from .models import Meal, MealPlan, DailyMeal
-from django.db.models import Q
+from .models import MealPlan, DailyMeal
 import random
 from datetime import date, timedelta
-
+from .expert_system import NutritionExpertSystem, User
+from experta import Fact
+from .serializers import MealPlanSerializer, MealSerializer, DailyMealSerializer
 
 @api_view(['POST'])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
 def generate_meal_plan(request):
-    try:
-        profile = UserProfile.objects.get(user=request.user)
-    except UserProfile.DoesNotExist:
-        return Response({"detail": "User profile not found"}, status=404)
+    profile, created = UserProfile.objects.get_or_create(user=request.user)
 
-    expert_system = ExpertSystem(profile)
-    weekly_meal_plan = expert_system.get_weekly_meal_plan()
+    # Update user profile with the data from the request
+    profile_data = request.data.get('profile', {})
+    profile.update_detailed_info(
+        age=profile_data.get('age', profile.age),
+        weight=profile_data.get('weight', profile.weight),
+        height=profile_data.get('height', profile.height),
+        gender=profile_data.get('gender', profile.gender),
+        body_fat=profile_data.get('body_fat', profile.body_fat),
+        goal=profile_data.get('goal', profile.goal),
+        lifestyle_intensity=profile_data.get('lifestyle_intensity', profile.lifestyle_intensity),
+        recommended_calories=profile_data.get('recommended_calories', profile.recommended_calories)
+    )
+    # Initialize and run the expert system
+    expert_system = NutritionExpertSystem()
+    expert_system.reset()
+    expert_system.declare(User(
+        age=profile.age,
+        gender=profile.gender,
+        weight=profile.weight,
+        height=profile.height,
+        body_fat=profile.body_fat,
+        goal=profile.goal,
+        lifestyle_intensity=profile.lifestyle_intensity,
+        recommended_calories=profile.recommended_calories
+    ))
+    expert_system.run()
 
+    # Extract the weekly meal plan from the expert system
+  # Extract the weekly meal plan from the expert system
+    weekly_plan = expert_system.weekly_plan if hasattr(expert_system, 'weekly_plan') else None
+
+    if not weekly_plan:
+        return Response({"detail": "Failed to generate meal plan"}, status= status.HTTP_400_BAD_REQUEST, content_type='application/json')
+
+    # Create MealPlan and DailyMeal objects
     start_date = date.today()
     end_date = start_date + timedelta(days=6)
 
@@ -31,34 +62,30 @@ def generate_meal_plan(request):
         end_date=end_date
     )
 
-    for i, daily_meals in enumerate(weekly_meal_plan):
+    for i, daily_meals in enumerate(weekly_plan):
         DailyMeal.objects.create(
             meal_plan=meal_plan,
             date=start_date + timedelta(days=i),
             meals=daily_meals
         )
 
-    return Response({"message": "Meal plan generated successfully", "meal_plan_id": meal_plan.id})
+    # Prepare the response data
+    response_data = {
+        "message": "Meal plan generated successfully",
+        "meal_plan_id": meal_plan.id,
+        "start_date": start_date,
+        "end_date": end_date,
+        "weekly_plan": weekly_plan
+    }
+    return Response(response_data, status= status.HTTP_201_CREATED, content_type='application/json')
 
 @api_view(['GET'])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
 def view_meal_plan(request, meal_plan_id):
     meal_plan = get_object_or_404(MealPlan, id=meal_plan_id, user=request.user)
-    daily_meals = meal_plan.daily_meals.all().order_by('date')
-
-    plan_data = {
-        "start_date": meal_plan.start_date,
-        "end_date": meal_plan.end_date,
-        "daily_meals": [
-            {
-                "date": daily_meal.date,
-                "meals": daily_meal.meals
-            } for daily_meal in daily_meals
-        ]
-    }
-
-    return Response(plan_data)
+    serializer = MealPlanSerializer(meal_plan)
+    return Response(serializer.data, status=status.HTTP_200_OK, content_type='application/json')
 
 @api_view(['GET'])
 @authentication_classes([JWTAuthentication])
@@ -67,11 +94,8 @@ def view_daily_meal(request, meal_plan_id, day):
     meal_plan = get_object_or_404(MealPlan, id=meal_plan_id, user=request.user)
     target_date = meal_plan.start_date + timedelta(days=day-1)
     daily_meal = get_object_or_404(DailyMeal, meal_plan=meal_plan, date=target_date)
-
-    return Response({
-        "date": daily_meal.date,
-        "meals": daily_meal.meals
-    })
+    serializer = DailyMealSerializer(daily_meal)
+    return Response(serializer.data, status=status.HTTP_200_OK, content_type='application/json')
 
 @api_view(['POST'])
 @authentication_classes([JWTAuthentication])
@@ -80,15 +104,47 @@ def update_meal_plan(request):
     try:
         profile = UserProfile.objects.get(user=request.user)
     except UserProfile.DoesNotExist:
-        return Response({"detail": "User profile not found"}, status=404)
+        return Response({"detail": "User profile not found"}, status=status.HTTP_404_NOT_FOUND, content_type='application/json')
+
+    # Update user profile with the data from the request
+    profile_data = request.data.get('profile', {})
+    if profile_data:
+        profile.update_detailed_info(
+            age=profile_data.get('age', profile.age),
+            weight=profile_data.get('weight', profile.weight),
+            height=profile_data.get('height', profile.height),
+            gender=profile_data.get('gender', profile.gender),
+            body_fat=profile_data.get('body_fat', profile.body_fat),
+            goal=profile_data.get('goal', profile.goal),
+            lifestyle_intensity=profile_data.get('lifestyle_intensity', profile.lifestyle_intensity),
+            recommended_calories=profile_data.get('recommended_calories', profile.recommended_calories)
+        )
 
     # Delete the old meal plan
-    MealPlan.objects.filter(user=request.user).delete()
+    # MealPlan.objects.filter(user=request.user).delete()
 
-    # Generate a new meal plan
-    expert_system = ExpertSystem(profile)
-    weekly_meal_plan = expert_system.get_weekly_meal_plan()
+    # Initialize and run the expert system
+    expert_system = NutritionExpertSystem()
+    expert_system.reset()
+    expert_system.declare(User(
+        age=profile.age,
+        gender=profile.gender,
+        weight=profile.weight,
+        height=profile.height,
+        body_fat=profile.body_fat,
+        goal=profile.goal,
+        lifestyle_intensity=profile.lifestyle_intensity,
+        recommended_calories=profile.recommended_calories
+    ))
+    expert_system.run()
 
+    # Extract the weekly meal plan from the expert system
+    weekly_plan = expert_system.weekly_plan if hasattr(expert_system, 'weekly_plan') else None
+    
+    if not weekly_plan:
+        return Response({"detail": "Failed to generate meal plan"}, status=status.HTTP_400_BAD_REQUEST, content_type='application/json')
+
+    # Create new MealPlan and DailyMeal objects
     start_date = date.today()
     end_date = start_date + timedelta(days=6)
 
@@ -98,64 +154,22 @@ def update_meal_plan(request):
         end_date=end_date
     )
 
-    for i, daily_meals in enumerate(weekly_meal_plan):
+    for i, daily_meals in enumerate(weekly_plan):
         DailyMeal.objects.create(
             meal_plan=meal_plan,
             date=start_date + timedelta(days=i),
             meals=daily_meals
         )
 
-    return Response({"message": "Meal plan updated successfully", "meal_plan_id": meal_plan.id})
+    # Use serializers to format the response data
+    meal_plan_serializer = MealPlanSerializer(meal_plan)
+    daily_meals_serializer = DailyMealSerializer(meal_plan.daily_meals.all(), many=True)
 
+    # Prepare the response data
+    response_data = {
+        "message": "Meal plan updated successfully",
+        "meal_plan": meal_plan_serializer.data,
+        "daily_meals": daily_meals_serializer.data
+    }
 
-class ExpertSystem:
-    def __init__(self, user_profile):
-        self.user = user_profile
-        self.calculate_bmr()
-        self.calculate_recommended_calories()
-        self.adjust_calories_based_on_lifestyle()
-        self.adjust_calories_based_on_goal()
-
-    # Implement the methods from the original ExpertSystem class here
-
-    def get_daily_meal_plan(self):
-        # Define meal counts based on calorie needs
-        if self.user.recommended_calories >= 3500:
-            meal_counts = {'breakfast': 2, 'lunch': 2, 'dinner': 1, 'snacks': 3}
-        elif 3000 <= self.user.recommended_calories < 3500:
-            meal_counts = {'breakfast': 1, 'lunch': 2, 'dinner': 1, 'snacks': 3}
-        else:
-            meal_counts = {'breakfast': 1, 'lunch': 1, 'dinner': 1, 'snacks': 3}
-
-        selected_meals = []
-
-        for meal_type, count in meal_counts.items():
-            meals_of_type = list(Meal.objects.filter(category=meal_type))
-            selected_meals.extend(random.sample(meals_of_type, count))
-
-        # Adjust meal portions to meet the required calories
-        total_calories = sum(meal.calories for meal in selected_meals)
-        total_protein = sum(meal.protein for meal in selected_meals)
-        total_fat = sum(meal.fat for meal in selected_meals)
-
-        scaling_factor = self.user.recommended_calories / total_calories
-        protein_scaling_factor = self.user.weight * self.user.protein_multiplier / total_protein
-        fat_scaling_factor = self.user.weight * self.user.fat_multiplier / total_fat
-
-        adjusted_meals = []
-        for meal in selected_meals:
-            adjusted_meal = {
-                'category': meal.category,
-                'meal': meal.meal,
-                'calories': meal.calories * scaling_factor,
-                'protein': meal.protein * protein_scaling_factor,
-                'fat': meal.fat * fat_scaling_factor,
-            }
-            adjusted_meal['carbohydrates'] = (adjusted_meal['calories'] - (adjusted_meal['protein'] * 4 + adjusted_meal['fat'] * 9)) / 4
-            adjusted_meals.append(adjusted_meal)
-
-        return adjusted_meals
-    
-    def get_weekly_meal_plan(self):
-        return [self.get_daily_meal_plan() for _ in range(7)]
-    
+    return Response(response_data, status=status.HTTP_205_RESET_CONTENT, content_type='application/json')
