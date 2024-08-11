@@ -2,13 +2,22 @@
 import os
 from pathlib import Path
 from datetime import timedelta
+from dotenv import load_dotenv
+from django.core.management.utils import get_random_secret_key
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-_v4(!f5l!f4mv26eb2xq&0$5@%-3v_hug$f3dh9jgtxnezw-4u'
+DEBUG = os.environ.get('DEBUG', 'False') == 'True'
+# ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '127.0.0.1,localhost').split(',')
+SECRET_KEY = os.environ.get('SECRET_KEY', get_random_secret_key())
 
-DEBUG = True
+PORT = int(os.environ.get('PORT', 8000))
+
+
+# SECRET_KEY = 'django-insecure-_v4(!f5l!f4mv26eb2xq&0$5@%-3v_hug$f3dh9jgtxnezw-4u'
+# DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 

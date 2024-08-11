@@ -6,3 +6,4 @@ pyrightconfig.json
 server/static/dataFiles
 .tree
 dj
+.env
