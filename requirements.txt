@@ -88,4 +88,4 @@ Werkzeug==3.0.3
 whitenoise==6.6.0
 wrapt==1.16.0
 zope.interface==6.4.post2
-./dist/frozendict-0.1.tar.gz
+dist/frozendict-1.2.tar.gz
