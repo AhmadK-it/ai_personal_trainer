@@ -19,10 +19,11 @@ PORT = int(os.environ.get('PORT', 8000))
 # SECRET_KEY = 'django-insecure-_v4(!f5l!f4mv26eb2xq&0$5@%-3v_hug$f3dh9jgtxnezw-4u'
 # DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['*','.onrender.com']
 
 CSRF_TRUSTED_ORIGINS = [
-    'https://ai-personal-trainer.onrender.com'
+    'https://ai-personal-trainer.onrender.com',
+    '*.onrender.com'
 ]
 
 AUTH_USER_MODEL = 'accounts.User'
@@ -116,7 +117,9 @@ TEMPLATES = [
 
 # Additional locations of static files
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'server/static'),
+    os.path.join(BASE_DIR, 'server','static'),
+    os.path.join(BASE_DIR, 'server','static','images'),
+    os.path.join(BASE_DIR, 'server','static','h5'),
 ]
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
