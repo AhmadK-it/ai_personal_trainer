@@ -23,7 +23,6 @@ ALLOWED_HOSTS = ['*','.onrender.com']
 
 CSRF_TRUSTED_ORIGINS = [
     'https://ai-personal-trainer.onrender.com',
-    '*.onrender.com'
 ]
 
 AUTH_USER_MODEL = 'accounts.User'
@@ -62,7 +61,7 @@ MIDDLEWARE = [
 # Specify the ASGI application
 ASGI_APPLICATION = 'server.asgi.application'
 
-# ,('127.0.0.1', 6379)
+# ,('127.0.0.1', 6379),('red-cq0th9qju9rs73b35e70:0YO5p07QFMGfeNvWK141BXQOCVVWf5IS@oregon-redis.render.com',6379),
 
 CHANNEL_LAYERS = {
     'default': {
@@ -73,13 +72,23 @@ CHANNEL_LAYERS = {
     },
 }
 
+# CHANNEL_LAYERS = {
+#     'default': {
+#         'BACKEND': 'channels_redis.core.RedisChannelLayer',
+#         'CONFIG': {
+#             "hosts": [('127.0.0.1', 6379)],
+#         },
+#     },
+# }
+
 
 ROOT_URLCONF = 'server.urls'
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-    )
+    ),
+    
 }
 
 
@@ -91,6 +100,17 @@ CORS_ALLOW_METHODS = (
     "POST",
     "PUT",
 )
+# Allow specific headers
+CORS_ALLOW_HEADERS = [
+    "authorization",
+    "content-type",
+    "x-requested-with",
+    "accept",
+    "origin",
+    "x-csrftoken",
+    "user-agent",
+    "ngrok-skip-browser-warning",
+]
 
 CORS_ALLOW_ALL_ORIGINS = True
 
@@ -119,7 +139,7 @@ TEMPLATES = [
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'server','static'),
     os.path.join(BASE_DIR, 'server','static','images'),
-    os.path.join(BASE_DIR, 'server','static','h5'),
+    os.path.join(BASE_DIR, 'server','static','models'),
 ]
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')

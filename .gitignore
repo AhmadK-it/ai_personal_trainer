@@ -7,3 +7,7 @@ server/static/dataFiles
 .tree
 dj
 .env
+.frameData.txt
+.Notes
+.stp.txt
+server/static/videos/

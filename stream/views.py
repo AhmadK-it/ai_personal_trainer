@@ -54,6 +54,20 @@ def active_sessions(req):
     sessions = list(VideoSession.objects.filter(active=True).values('session_id', 'start_time'))
     return Response({'sessions': sessions}, status=status.HTTP_200_OK, content_type='application/json')
 
+def setUnActive(session_ogj):
+    session = VideoSession.objects.get(session_id=session_ogj['session_id'], active=True)
+    session.end_time = datetime.now()
+    session.active = False
+    session.save()
+    return f'{session_ogj["session_id"]} deactivated'
+
+#c Testing request
+@api_view(['GET'])
+def close_all_active_sessions(req):
+    sessions = list(VideoSession.objects.filter(active=True).values('session_id'))
+    results = [setUnActive(session) for session in sessions] 
+    return Response({'sessions': results}, status=status.HTTP_200_OK, content_type='application/json')
+
 #c Testing request
 def video_stream(req):
     return render(request=req, template_name='video_stream.html')

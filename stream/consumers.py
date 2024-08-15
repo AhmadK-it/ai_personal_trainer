@@ -1,16 +1,15 @@
 import uuid 
-import os
 import aiofiles
 import json
 import base64
 import cv2
+import os
 import numpy as np
-import mediapipe as mp
-import tensorflow as tf
 from collections import deque
 from channels.generic.websocket import AsyncWebsocketConsumer
 from asgiref.sync import sync_to_async
 from .models import VideoSession
+from .pose_detection_init import PoseDetectionFactory
 from datetime import datetime
 from channels.db import database_sync_to_async
 from django.core.exceptions import ObjectDoesNotExist
@@ -211,57 +210,109 @@ class JSONSessionConsumer(AsyncWebsocketConsumer):
         
 
 class PoseDetectionConsumer(AsyncWebsocketConsumer):
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.pose_detection = None
+        self.video_writer = None
+        self.output_dir = os.path.join('server','static','videos')  # Directory to store videos
+        self.frame_count = 0
+        self.max_frames = 300  # M
+    
+    
     async def connect(self):
         self.session_id = self.scope['url_route']['kwargs']['session_id']
         self.room_group_name = f'pose_session_{self.session_id}'
 
-        # Validate session_id
         if not await self.is_valid_session(self.session_id):
             await self.close()
             return
 
-        # Join room group
         await self.channel_layer.group_add(
             self.room_group_name,
             self.channel_name
         )
         await self.accept()
 
-        # Initialize pose detection components
-        self.initialize_pose_detection()
+        self.pose_detection = None
 
     async def disconnect(self, close_code):
-        # Leave room group
         await self.channel_layer.group_discard(
             self.room_group_name,
             self.channel_name
         )
-        print(f'Disconnection for {self.room_group_name}')
-
-        # Retrieve and deactivate the session
         pose_session = await self.get_pose_session(self.session_id)
         await sync_to_async(self.set_session_inactive)(pose_session)
 
-        # Clean up pose detection components
-        self.pose.close()
+        if self.pose_detection:
+            self.pose_detection.pose.close()
 
-    async def receive(self, text_data=None, bytes_data=None):
+    # async def receive(self, text_data=None, bytes_data=None):
+    #     if text_data:
+    #         text_data_json = json.loads(text_data)
+    #         if 'exercise_type' in text_data_json:
+    #             self.pose_detection = PoseDetectionFactory.get_pose_detection(text_data_json['exercise_type'])
+    #             await self.send_json_to_client({'status': 'Pose detection initialized'})
+    #         elif 'frame' in text_data_json:
+    #             try:
+    #                 frame_data = text_data_json['frame']
+    #                 # print(f'frame: {frame_data}')
+    #                 # frame_bytes = base64.b64decode(frame_data)
+    #                 # nparr = np.frombuffer(frame_bytes, np.uint8)
+    #                 # frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+    #                 rgb_frame, frame = self.decode_and_process_frame(frame_data)
+                    
+    #                 if self.pose_detection:
+    #                     if frame is not None:
+    #                         results = self.pose_detection.process_frame(frame)
+    #                         print(f'results: {results}')
+    #                         # Only send back the prediction results, not the entire frame
+    #                         await self.send_json_to_client(results)
+    #                     else:
+    #                         print(f'frame:{frame} rgb: {rgb_frame}')
+    #                         await self.send_json_to_client({'error': f'frame is corrupted: {frame_data}'})
+    #                 else:
+    #                         await self.send_json_to_client({'error': 'Pose detection not initialized'})
+    #             except:
+    #                 frame_data = text_data_json['frame']
+    #                 print(f'frame: within biggest try')
+    #                 await self.send_json_to_client({'error': f'frame is corrupted: {frame_data}'})
+
+    async def receive(self, text_data):
+        
         if text_data:
             text_data_json = json.loads(text_data)
-            frame_data = text_data_json['frame']
-            print(f'data: {frame_data}')
-            
-            await self.send_json_to_client({'received_data': frame_data})
-            # Decode base64 frame data
-            frame_bytes = base64.b64decode(frame_data)
-            nparr = np.frombuffer(frame_bytes, np.uint8)
-            frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+            # print(text_data_json)
+            if 'exercise_type' in text_data_json:
+                self.pose_detection = PoseDetectionFactory.get_pose_detection(text_data_json['exercise_type'])
+                print('Pose detection initialized')
+                await self.send_json_to_client({'status': 'Pose detection initialized'})
+            elif 'frame' in text_data_json:
+                try:
+                    frame_data = text_data_json['frame']
+                    
+                    _,frame = self.decode_and_process_frame(frame_data)
+                    
+                    if frame is not None:
+                        try:
+                            self.write_frame_to_video(frame)
+                        except Exception as e:
+                            print(f'error with writing video{e}')
+                            
+                        if self.pose_detection:
+                            results = self.pose_detection.process_frame(frame)
+                            print(f'results: {results}')
+                            await self.send_json_to_client(results)
+                        else:
+                            await self.send_json_to_client({'error': 'Pose detection not initialized'})
+                            print('Pose detection not initialized')
+                    else:
+                        print('failed to decode YUV420 frame')
+                        await self.send_json_to_client({'error': 'Failed to decode frame'})
+                except Exception as e:
+                    print("f'Error processing frame: {str(e)}'")
+                    await self.send_json_to_client({'error': f'Error processing frame: {str(e)}'})
 
-            # Process the frame and get results
-            results = await self.process_frame(frame)
-
-            # Send the results back to the client
-            await self.send_json_to_client(results)
 
     async def send_json_to_client(self, data):
         await self.send(text_data=json.dumps(data))
@@ -280,116 +331,105 @@ class PoseDetectionConsumer(AsyncWebsocketConsumer):
         pose_session.end_time = datetime.now()
         pose_session.save()
 
-    @staticmethod
-    async def get_pose_session(session_id):
-        return await sync_to_async(VideoSession.objects.get)(session_id=session_id)
 
-    def initialize_pose_detection(self):
-        # Load the trained model
-        self.model = tf.keras.models.load_model(os.path.join('server', 'static', 'h5','exercise_classification_model_full_data.h5'))
 
-        # Initialize MediaPipe Pose
-        self.mp_pose = mp.solutions.pose
-        self.pose = self.mp_pose.Pose(static_image_mode=False, model_complexity=1, enable_segmentation=False,
-                                    min_detection_confidence=0.5, min_tracking_confidence=0.5)
+    def check_image_format(self,frame):
+        if not isinstance(frame, np.ndarray):
+            print("Error: Frame is not a NumPy array")
+            return False
+        
+        if frame.dtype != np.uint8:
+            print("Error: Frame data type is not uint8")
+            return False
+        
+        if len(frame.shape) != 3:
+            print("Error: Frame does not have 3 dimensions (height, width, channels)")
+            return False
+        
+        if frame.shape[2] != 3:
+            print("Error: Frame does not have 3 color channels")
+            return False
+        
+        return True
 
-        # Initialize variables for variable-length sliding window
-        self.max_window_size = 128
-        self.min_window_size = 30
-        self.current_window_size = self.min_window_size
-        self.frame_buffer = deque(maxlen=self.max_window_size)
 
-        # Mapping of class indices to class names
-        self.class_names = ['correct form', 'too high', 'too low']
+    def decode_and_process_frame(self, base64_string):
+        try:
+            # Decode base64 string
+            image_data = base64.b64decode(base64_string)
+            print(f"Decoded base64 string. Length: {len(image_data)}")
+        except base64.binascii.Error as e:
+            print(f"Error: Invalid base64 string: {e}")
+            return None, None
+        
+        try:
+            # Convert to NumPy array
+            np_array = np.frombuffer(image_data, np.uint8)
+            print(f"Converted to NumPy array. Shape: {np_array.shape}")
+        except ValueError as e:
+            print(f"Error: Could not convert data to NumPy array: {e}")
+            return None, None
+        
+        # Attempt to decode the image
+        frame = cv2.imdecode(np_array, cv2.IMREAD_COLOR)
+        
+        if frame is None:
+            print("Error: Could not decode image data")
+            return None, None
 
-        # Variables for adaptive window sizing
-        self.confidence_threshold = 0.7
-        self.low_confidence_count = 0
-        self.high_confidence_count = 0
+        if frame.size == 0:
+            print("Error: Decoded frame is empty")
+            return None, None
+        
+        print(f"Decoded frame shape: {frame.shape}")
+        
+        if not self.check_image_format(frame):
+            return None, None
 
-    async def process_frame(self, frame):
-        # Convert the BGR image to RGB
-        rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        try:
+            # Convert to RGB
+            rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            print(f"Converted to RGB. Shape: {rgb_frame.shape}")
+            
+        except cv2.error as e:
+            print(f"OpenCV Error: {str(e)}")
+            return None, None
 
-        # Process the frame with MediaPipe Pose
-        results = self.pose.process(rgb_frame)
+        return rgb_frame, frame
+    
 
-        if results.pose_world_landmarks:
-            keypoints = self.process_landmarks(results.pose_world_landmarks.landmark)
+    def write_frame_to_video(self, frame):
+        if self.video_writer is None:
+            self.initialize_video_writer(frame.shape[1], frame.shape[0])
 
-            # Add keypoints to frame buffer
-            self.frame_buffer.append(keypoints)
+        self.video_writer.write(frame)
+        self.frame_count += 1
 
-            # Make prediction if we have enough frames
-            if len(self.frame_buffer) >= self.current_window_size:
-                input_data = list(self.frame_buffer)[-self.current_window_size:]
-                prediction = self.make_prediction(input_data)
-                predicted_class = self.class_names[np.argmax(prediction)]
-                confidence = np.max(prediction)
+        if self.frame_count >= self.max_frames:
+            self.close_video_writer()
 
-                # Adjust window size based on prediction confidence
-                self.adjust_window_size(confidence)
+    def initialize_video_writer(self, width, height):
+        if not os.path.exists(self.output_dir):
+            os.makedirs(self.output_dir)
 
-                return {
-                    'prediction': predicted_class,
-                    'confidence': float(confidence),
-                    'window_size': self.current_window_size
-                }
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"{self.session_id}_{timestamp}.mp4"
+        filepath = os.path.join(self.output_dir, filename)
+        try:
+            fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+            self.video_writer = cv2.VideoWriter(filepath, fourcc, 30.0, (width, height))
+        except cv2.error as err:
+            print(f'cv writer error {err}')
+            
+        self.frame_count = 0
+        print(f"Initialized video writer: {filepath}")
 
-        return None
-
-    def process_landmarks(self, landmarks):
-        keypoints = []
-        indices_to_keep = [11, 12, 13, 14, 15, 16, 23, 24, 25, 26, 27, 28]
-
-        for idx in indices_to_keep:
-            keypoints.extend([landmarks[idx].x, landmarks[idx].y])
-
-        # Calculate shoulder angles
-        left_shoulder_angle = self.calculate_angle(
-            [landmarks[23].x, landmarks[23].y],
-            [landmarks[11].x, landmarks[11].y],
-            [landmarks[13].x, landmarks[13].y]
-        )
-        right_shoulder_angle = self.calculate_angle(
-            [landmarks[24].x, landmarks[24].y],
-            [landmarks[12].x, landmarks[12].y],
-            [landmarks[14].x, landmarks[14].y]
-        )
-
-        # Add angles to keypoints
-        keypoints.extend([left_shoulder_angle, right_shoulder_angle])
-
-        return keypoints
-
-    def calculate_angle(self, a, b, c):
-        a = np.array(a)
-        b = np.array(b)
-        c = np.array(c)
-        radians = np.arctan2(c[1] - b[1], c[0] - b[0]) - np.arctan2(a[1] - b[1], a[0] - b[0])
-        angle = np.abs(radians * 180.0 / np.pi)
-        if angle > 180.0:
-            angle = 360 - angle
-        return angle
-
-    def make_prediction(self, input_data):
-        # Pad the input data to max length (128) with 999
-        padded_input = tf.keras.preprocessing.sequence.pad_sequences(
-            [input_data], maxlen=self.max_window_size, padding='post', value=999.0
-        )
-        prediction = self.model.predict(padded_input)
-        return prediction[0]
-
-    def adjust_window_size(self, confidence):
-        if confidence < self.confidence_threshold:
-            self.low_confidence_count += 1
-            self.high_confidence_count = 0
-            if self.low_confidence_count >= 5 and self.current_window_size < self.max_window_size:
-                self.current_window_size = min(self.current_window_size + 5, self.max_window_size)
-                self.low_confidence_count = 0
-        else:
-            self.high_confidence_count += 1
-            self.low_confidence_count = 0
-            if self.high_confidence_count >= 10 and self.current_window_size > self.min_window_size:
-                self.current_window_size = max(self.current_window_size - 5, self.min_window_size)
-                self.high_confidence_count = 0
+    def close_video_writer(self):
+        if self.video_writer is not None:
+            self.video_writer.release()
+            self.video_writer = None
+            print("Closed video writer")
+    
+    @database_sync_to_async
+    def get_pose_session(self, session_id):
+        return VideoSession.objects.get(session_id=session_id)

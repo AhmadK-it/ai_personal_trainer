@@ -8,5 +8,6 @@ urlpatterns = [
     path('sessions/start/', views.start_session, name='start-session'),
     path('sessions/end/', views.end_session, name='end-session'),
     path('sessions/active/', views.active_sessions, name='active-sessions'),
+    path('sessions/end/all/', views.close_all_active_sessions, name='deactive-all-sessions'),
     path('browse/', views.video_browser, name='video-browser'),
 ]

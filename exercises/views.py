@@ -7,7 +7,7 @@ from .serializers import ExcerciseSerializer
 from .models import Exercise
 
 
-@api_view(['GET'])
+@api_view(['GET','OPTIONS'])
 @permission_classes((IsAuthenticated, ))
 def getExcercisesList(req):
     excercises = Exercise.objects.all()
@@ -18,9 +18,10 @@ def getExcercisesList(req):
     return Response(data=data, status=status.HTTP_200_OK, content_type='application/json')
 
 
-@api_view(['GET'])
+@api_view(['GET', 'OPTIONS'])
 @permission_classes((IsAuthenticated, ))
 def getExcercise(req, pk):
     excercise = Exercise.objects.get(id=pk)
     excercise_serializer = ExcerciseSerializer(excercise, many=False)
     return Response(data=excercise_serializer.data, status=status.HTTP_200_OK, content_type='application/json')
+    

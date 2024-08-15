@@ -38,6 +38,7 @@ class UserLoginSerializer(serializers.ModelSerializer):
             )
         
         if not user:
+            print(self.context.get('request'))
             raise AuthenticationFailed('invalid credentials try again ')
         
         tokens=user.get_tokens()

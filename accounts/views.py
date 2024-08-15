@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from django.http import HttpResponse
 from rest_framework import status
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
@@ -32,9 +33,25 @@ class RegisterUserView(GenericAPIView):
 class LoginUserView(GenericAPIView):
     serializer_class=UserLoginSerializer
     def post(self,req):
+        print(f'req obj: {req}')
+        print(f'headers: {req.headers}')
+        print(f'data: {req.data}')
+        # return Response({}, status=status.HTTP_200_OK)
         serializer=self.serializer_class(data=req.data, context={'request': req})
         serializer.is_valid(raise_exception=True)
         return Response(serializer.data, status=status.HTTP_200_OK, content_type='application/json')
+
+@api_view(['POST', 'OPTIONS'])
+def loginView(req):
+        serializer_class=UserLoginSerializer
+        print(f'req obj: {req}')
+        print(f'headers: {req.headers}')
+        print(f'data: {req.data}')
+        # return Response({}, status=status.HTTP_200_OK)
+        serializer=serializer_class(data=req.data, context={'request': req})
+        serializer.is_valid(raise_exception=True)
+        return Response(serializer.data, status=status.HTTP_200_OK, content_type='application/json')
+    
 
 class LogoutUserView(GenericAPIView):
     serializer_class=UserLogoutSerializer
@@ -55,15 +72,22 @@ class TestAuthView(GenericAPIView):
         return Response(data, status=status.HTTP_200_OK, content_type='application/json')
 
 
-@api_view(['GET', 'POST'])
+@api_view(['GET', 'POST', 'OPTIONS'])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
 def user_profile(request):
+    if request.method == 'OPTIONS':
+        response = HttpResponse()
+        response['Allow'] = 'GET, POST, OPTIONS'
+        response['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
+        response['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+        return response
+    
     try:
         profile = UserProfile.objects.get(user=request.user)
     except UserProfile.DoesNotExist:
         profile = None
-
+    print(request.method)
     if request.method == 'GET':
         if profile:
             serializer = UserProfileSerializer(profile)
