@@ -5,13 +5,14 @@ from rest_framework.response import Response
 from rest_framework import status
 from accounts.models import UserProfile
 from django.shortcuts import get_object_or_404
-from .models import MealPlan, DailyMeal
+from .models import MealPlan, DailyMeal, Recipe
 import random
 from datetime import date, timedelta
 from .expert_system import NutritionExpertSystem, User
 from experta import Fact
-from .serializers import MealPlanSerializer, MealSerializer, DailyMealSerializer
-
+from .serializers import MealPlanSerializer, MealSerializer, DailyMealSerializer, RecipeInputSerializer, RecipeSerializer
+from .cohere_recipe import generate_recipe
+import json
 @api_view(['POST'])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
@@ -85,7 +86,13 @@ def generate_meal_plan(request):
 def view_meal_plan(request, meal_plan_id):
     meal_plan = get_object_or_404(MealPlan, id=meal_plan_id, user=request.user)
     serializer = MealPlanSerializer(meal_plan)
-    return Response(serializer.data, status=status.HTTP_200_OK, content_type='application/json')
+    return Response({
+        "meal_plan_id": serializer.data['id'],
+        "creation_date": serializer.data["created_at"],
+        "start_date": serializer.data["start_date"],
+        "end_date": serializer.data["end_date"],
+        "weekly_plan": serializer.data["daily_meals"]
+        }, status=status.HTTP_200_OK, content_type='application/json')
 
 @api_view(['GET'])
 @authentication_classes([JWTAuthentication])
@@ -173,3 +180,47 @@ def update_meal_plan(request):
     }
 
     return Response(response_data, status=status.HTTP_205_RESET_CONTENT, content_type='application/json')
+
+@api_view(['POST', 'PUT'])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+def generate_update_recipe(request):
+    print(json.dumps(request.data, indent=2))
+    input_serializer = RecipeInputSerializer(data=request.data)
+    if input_serializer.is_valid():
+        name = input_serializer.validated_data['name']
+        nutrition_facts = input_serializer.validated_data['nutrition_facts']
+
+        # Generate recipe using the provided name and nutrition facts
+        try:
+            recipe_data = generate_recipe(name,nutrition_facts)
+            print(json.dumps(recipe, indent=2))
+        except Exception as e:
+            print(f"cohere error occurred: {e}")
+        
+        recipe, created = Recipe.objects.update_or_create(
+            name=name,
+            defaults={
+                'ingredients': recipe_data['ingredients'],
+                'instructions': recipe_data['instructions'],
+                'nutrition_facts': nutrition_facts
+            }
+        )
+
+        serializer = RecipeSerializer(recipe)
+        action = 'created' if created else 'updated'
+        st = status.HTTP_201_CREATED if action == 'created' else status.HTTP_202_ACCEPTED
+        return Response({'message': f'Recipe {action} successfully', 'recipe': serializer.data}, status=st, content_type='application/json')
+    return Response(input_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['GET'])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+def view_recipe(request):
+    name = request.data.get('name', '')
+    try:
+        recipe = Recipe.objects.get(name__iexact=name)
+        serializer = RecipeSerializer(recipe)
+        return Response(serializer.data, status=status.HTTP_200_OK, content_type='application/json')
+    except Recipe.DoesNotExist:
+        return Response({'error': 'Recipe not found'}, status=status.HTTP_404_NOT_FOUND, content_type='application/json')

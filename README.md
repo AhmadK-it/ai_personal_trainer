@@ -1749,6 +1749,250 @@ _For Weakness Points it must be a string with each optin sperated with ","_
 }
 ```
 
+* * *
+## Request meal recipe : https://ai-personal-trainer.onrender.com/meals/update-generate-recipe/
+### req type: POST
+
+### req headers:
+- Authorization is required via Bearer Token
+- Content-Type: application/json
+- User-Agent: < agreed user agent >
+
+
+### req obj:
+
+```
+{
+  "name": "Muffin English Wheat Bran With Raisins",
+  "nutrition_facts": {
+    "calories": 456.2,
+    "protein": 14.1,
+    "carbs": 94.6,
+    "fat": 2.4
+  }
+}
+
+```
+
+### response code 201
+### response breackdown:
+- message : state for the recipe
+- recipe : it is a dictionary that have:
+	- recipe name
+	- ingredients : list of objects each object is an ingredient havin:
+		- item: name for ingredient 
+		- amount: ingredient's amount
+	- instructions: list of strings each one represents a step 
+### response obj:
+```
+{
+    "message": "Recipe created successfully",
+    "recipe": {
+        "name": "Muffin English Wheat Bran With Raisins",
+        "ingredients": [
+            {
+                "item": "Whole bran",
+                "amount": "1 cup"
+            },
+            {
+                "item": "All-purpose flour",
+                "amount": "1 cup"
+            },
+            {
+                "item": "Brown sugar",
+                "amount": "1/4 cup"
+            },
+            {
+                "item": "Raisins",
+                "amount": "1/4 cup"
+            },
+            {
+                "item": "Ground cinnamon",
+                "amount": "1/2 teaspoon"
+            },
+            {
+                "item": "Baking soda",
+                "amount": "1/2 teaspoon"
+            },
+            {
+                "item": "Egg",
+                "amount": "1 egg"
+            },
+            {
+                "item": "Buttermilk",
+                "amount": "1/2 cup"
+            }
+        ],
+        "instructions": [
+            "Preheat the oven to 400 Fahrenheit.",
+            "Combine the whole bran, all-purpose flour, brown sugar, raisins, cinnamon, and baking soda in a large bowl.",
+            "Beat the egg and buttermilk together in a small bowl.",
+            "Add the buttermilk mixture to the dry ingredients and stir just until the dry ingredients are moistened.",
+            "Spoon the batter into muffin cups or into a greased muffin pan.",
+            "Bake for 25 minutes or until a toothpick inserted in the center of a muffin comes out clean."
+        ]
+    }
+}
+```
+* * *
+## Update meal recipe : https://ai-personal-trainer.onrender.com/meals/update-generate-recipe/
+### req type: PUT
+
+### req headers:
+- Authorization is required via Bearer Token
+- Content-Type: application/json
+- User-Agent: < agreed user agent >
+
+
+### req obj:
+
+```
+{
+  "name": "Muffin English Wheat Bran With Raisins",
+  "nutrition_facts": {
+    "calories": 456.2,
+    "protein": 14.1,
+    "carbs": 94.6,
+    "fat": 2.4
+  }
+}
+
+```
+
+### response code 201
+### response breackdown:
+- message : state for the recipe
+- recipe : it is a dictionary that have:
+	- recipe name
+	- ingredients : list of objects each object is an ingredient havin:
+		- item: name for ingredient 
+		- amount: ingredient's amount
+	- instructions: list of strings each one represents a step 
+### response obj:
+```
+{
+    "message": "Recipe updated successfully",
+    "recipe": {
+        "name": "Muffin English Wheat Bran With Raisins",
+        "ingredients": [
+            {
+                "item": "Whole bran",
+                "amount": "1 cup"
+            },
+            {
+                "item": "All-purpose flour",
+                "amount": "1 cup"
+            },
+            {
+                "item": "Brown sugar",
+                "amount": "1/3 cup"
+            },
+            {
+                "item": "Raisins",
+                "amount": "1/2 cup"
+            },
+            {
+                "item": "Ground cinnamon",
+                "amount": "1/2 teaspoon"
+            },
+            {
+                "item": "Baking soda",
+                "amount": "1/2 teaspoon"
+            },
+            {
+                "item": "Egg",
+                "amount": "1"
+            },
+            {
+                "item": "Buttermilk",
+                "amount": "1/2 cup"
+            }
+        ],
+        "instructions": [
+            "Preheat the oven to 400 Fahrenheit.",
+            "Combine the whole bran, all-purpose flour, brown sugar, raisins, cinnamon, and baking soda in a large bowl.",
+            "Beat the egg with the buttermilk, then add to the dry ingredients.",
+            "Stir quickly and lightly until the batter is just combined, preferably with a fork.",
+            "Pour the batter into muffin cups, filling each cup to 2/3 full.",
+            "Bake for 15-20 minutes, or until a toothpick inserted into the center of a muffin comes out clean."
+        ]
+    }
+}
+```
+* * *
+## View meal recipe based on name: https://ai-personal-trainer.onrender.com/meals/view-recipe/
+### req type: GET
+
+### req headers:
+- Authorization is required via Bearer Token
+- Content-Type: application/json
+- User-Agent: < agreed user agent >
+
+
+### req obj:
+
+```
+{
+  "name": "Muffin English Wheat Bran With Raisins",
+}
+
+```
+
+### response code 200
+### response breackdown:
+- ingredients : list of objects each object is an ingredient havin:
+	- item: name for ingredient 
+	- amount: ingredient's amount
+- instructions: list of strings each one represents a step 
+### response obj:
+```
+{
+    "name": "Muffin English Wheat Bran With Raisins",
+    "ingredients": [
+        {
+            "item": "Whole bran",
+            "amount": "1 cup"
+        },
+        {
+            "item": "All-purpose flour",
+            "amount": "1 cup"
+        },
+        {
+            "item": "Brown sugar",
+            "amount": "1/3 cup"
+        },
+        {
+            "item": "Raisins",
+            "amount": "1/2 cup"
+        },
+        {
+            "item": "Ground cinnamon",
+            "amount": "1/2 teaspoon"
+        },
+        {
+            "item": "Baking soda",
+            "amount": "1/2 teaspoon"
+        },
+        {
+            "item": "Egg",
+            "amount": "1"
+        },
+        {
+            "item": "Buttermilk",
+            "amount": "1/2 cup"
+        }
+    ],
+    "instructions": [
+        "Preheat the oven to 400 Fahrenheit.",
+        "Combine the whole bran, all-purpose flour, brown sugar, raisins, cinnamon, and baking soda in a large bowl.",
+        "Beat the egg with the buttermilk, then add to the dry ingredients.",
+        "Stir quickly and lightly until the batter is just combined, preferably with a fork.",
+        "Pour the batter into muffin cups, filling each cup to 2/3 full.",
+        "Bake for 15-20 minutes, or until a toothpick inserted into the center of a muffin comes out clean."
+    ]
+}
+```
+* * *
 
 
 # Web Sockets

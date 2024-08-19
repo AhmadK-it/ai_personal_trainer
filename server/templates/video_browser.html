@@ -1,10 +1,9 @@
-# server/templates/video_browser.html
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Video Browser</title>
+    <title>Video Browser (Debug)</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -55,10 +54,16 @@
             width: 100%;
             max-height: 500px;
         }
+        #debug-info {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f8f8f8;
+            border: 1px solid #ddd;
+        }
     </style>
 </head>
 <body>
-    <h1>Video Browser</h1>
+    <h1>Video Browser (Debug)</h1>
     <div class="container">
         <ul id="video-list">
             {% for video in videos %}
@@ -77,12 +82,42 @@
             </video>
         </div>
     </div>
+    <div id="debug-info"></div>
 
     <script>
         function playVideo(filename) {
             const videoPlayer = document.querySelector('#video-player video');
-            videoPlayer.src = `/static/videos/${filename}`;
-            videoPlayer.play();
+            const debugInfo = document.getElementById('debug-info');
+            const videoUrl = `/static/videos/${filename}`;
+            
+            videoPlayer.src = videoUrl;
+            debugInfo.innerHTML = `Attempting to play: ${videoUrl}<br>`;
+            
+            videoPlayer.onerror = function() {
+                debugInfo.innerHTML += `Error: ${videoPlayer.error.message}<br>`;
+                debugInfo.innerHTML += `Error code: ${videoPlayer.error.code}<br>`;
+            };
+            
+            videoPlayer.onloadedmetadata = function() {
+                debugInfo.innerHTML += `Video loaded successfully. Duration: ${videoPlayer.duration} seconds<br>`;
+            };
+            
+            fetch(videoUrl)
+                .then(response => {
+                    debugInfo.innerHTML += `Server response: ${response.status} ${response.statusText}<br>`;
+                    debugInfo.innerHTML += `Content-Type: ${response.headers.get('Content-Type')}<br>`;
+                    return response.blob();
+                })
+                .then(blob => {
+                    debugInfo.innerHTML += `File size: ${blob.size} bytes<br>`;
+                })
+                .catch(error => {
+                    debugInfo.innerHTML += `Fetch error: ${error}<br>`;
+                });
+
+            videoPlayer.play().catch(error => {
+                debugInfo.innerHTML += `Play error: ${error}<br>`;
+            });
         }
     </script>
 </body>

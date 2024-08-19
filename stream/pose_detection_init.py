@@ -5,7 +5,31 @@ import tensorflow as tf
 import mediapipe as mp
 from abc import ABC, abstractmethod
 
+class AttentionLayer(tf.keras.layers.Layer):
+    def __init__(self, **kwargs):
+        super(AttentionLayer, self).__init__(**kwargs)
+
+    def build(self, input_shape):
+        self.W = self.add_weight(name='attention_weight', shape=(input_shape[-1], 1),
+                                initializer='random_normal', trainable=True)
+        self.b = self.add_weight(name='attention_bias', shape=(input_shape[1], 1),
+                                initializer='zeros', trainable=True)
+        super(AttentionLayer, self).build(input_shape)
+
+    def call(self, x):
+        e = tf.keras.backend.tanh(tf.keras.backend.dot(x, self.W) + self.b)
+        a = tf.keras.backend.softmax(e, axis=1)
+        output = x * a
+        return tf.keras.backend.sum(output, axis=1)
+
+try:
+    tf.keras.utils.get_custom_objects()['AttentionLayer'] = AttentionLayer
+    print('custome obj regestered successfully')
+except Exception as ex:
+    print(f'loading error custom obj {ex}')
+
 class PoseDetectionBase(ABC):
+
     def __init__(self, config):
         self.mp_pose = mp.solutions.pose
         self.pose = self.mp_pose.Pose(
@@ -34,15 +58,18 @@ class PoseDetectionBase(ABC):
     def load_model_safely(self, model_path):
         try:
             # Try loading the model using SavedModel format
-            return tf.keras.models.load_model(model_path, compile=False)
-        except:
+            keras_path = f'{model_path}_gru_attention_model_full_data_new.keras'
+            if os.path.exists(keras_path):
+                return tf.keras.models.load_model(keras_path,custom_objects={'AttentionLayer': AttentionLayer})
+            else:
+                raise FileNotFoundError('keras path error')
+        except Exception as e:
             # If loading fails, try to convert the HDF5 model to SavedModel format
-            h5_path = f"{model_path}.h5"
+            print(f'error msg is {e}')
+            print('back to loading h5')
+            h5_path = f"{model_path}_GRU_model_full_data.h5"
             if os.path.exists(h5_path):
-                temp_model = tf.keras.models.load_model(h5_path, compile=False)
-                # tf.keras.models.save_model(temp_model, model_path, save_format='tf')
-                # return tf.keras.models.load_model(model_path, compile=False)
-                return temp_model
+                return tf.keras.models.load_model(h5_path, compile=False)
             else:
                 raise FileNotFoundError(f"Model file not found at {model_path} or {h5_path}")
     
@@ -59,8 +86,8 @@ class PoseDetectionBase(ABC):
 class ShoulderPressPoseDetection(PoseDetectionBase):
     def __init__(self):
         config = {
-            'model_path': os.path.join('server', 'static','models','exercise_classification_GRU_model_full_data'),
-            'class_names': ['correct form', 'too high', 'too low'],
+            'model_path': os.path.join('server', 'static','models','exercise_classification'),
+            'class_names': ['Good Job correct form', 'Lower your hands', 'Raise your hands'],
             'max_frames': 128,
             'states': ['WAITING', 'STARTED', 'RAISED'],
             'indices_to_keep': [11, 12, 13, 14, 15, 16, 23, 24, 25, 26, 27, 28]
@@ -94,8 +121,10 @@ class ShoulderPressPoseDetection(PoseDetectionBase):
     def process_frame(self, frame):
         rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         results = self.pose.process(rgb_frame)
-
+        # print(f'meadiapipe res: {results}')
+        # print(f'meadiapipe res landmarks: {results.pose_world_landmarks}')
         if results.pose_world_landmarks:
+            print('hi i am ML model')
             landmarks = results.pose_world_landmarks.landmark
             keypoints = []
             for idx in self.indices_to_keep:
@@ -117,7 +146,7 @@ class ShoulderPressPoseDetection(PoseDetectionBase):
                 if left_shoulder_angle < self.ANGLE_THRESHOLD and right_shoulder_angle < self.ANGLE_THRESHOLD:
                     if len(self.exercise_frames) > self.MAX_FRAMES:
                         self.exercise_frames = self.exercise_frames[-self.MAX_FRAMES:]
-
+                    print('mL prediction step')
                     prediction = self.make_prediction(self.exercise_frames)
                     predicted_class = self.class_names[np.argmax(prediction)]
                     confidence = np.max(prediction)

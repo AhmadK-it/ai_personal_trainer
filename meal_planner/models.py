@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth import get_user_model
+from django.contrib.postgres.fields import ArrayField
 
 User = get_user_model()
 
@@ -30,3 +31,12 @@ class Meal(models.Model):
 
     def __str__(self):
         return f"{self.category}: {self.meal}"
+
+class Recipe(models.Model):
+    name = models.CharField(max_length=200, unique=True)
+    ingredients = models.JSONField()
+    instructions = ArrayField(models.TextField())
+    nutrition_facts = models.JSONField()
+
+    def __str__(self):
+        return self.name

@@ -44,7 +44,6 @@ class LoginUserView(GenericAPIView):
 @api_view(['POST', 'OPTIONS'])
 def loginView(req):
         serializer_class=UserLoginSerializer
-        print(f'req obj: {req}')
         print(f'headers: {req.headers}')
         print(f'data: {req.data}')
         # return Response({}, status=status.HTTP_200_OK)
