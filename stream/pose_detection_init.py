@@ -4,6 +4,8 @@ import numpy as np
 import tensorflow as tf
 import mediapipe as mp
 from abc import ABC, abstractmethod
+from .bicep import BicepCurlVideoProcessor
+from .Front_Side_View_Squat import SquatAnalyzer
 
 class AttentionLayer(tf.keras.layers.Layer):
     def __init__(self, **kwargs):
@@ -85,12 +87,14 @@ class PoseDetectionBase(ABC):
 
 class ShoulderPressPoseDetection(PoseDetectionBase):
     def __init__(self):
+        # names = ['Good Job correct form', 'Good Job correct form', 'Good Job correct form']
+        names = ['Good Job correct form', 'Lower your hands', 'Raise your hands']
         config = {
             'model_path': os.path.join('server', 'static','models','exercise_classification'),
-            'class_names': ['Good Job correct form', 'Lower your hands', 'Raise your hands'],
+            'class_names': names,
             'max_frames': 128,
             'states': ['WAITING', 'STARTED', 'RAISED'],
-            'indices_to_keep': [11, 12, 13, 14, 15, 16, 23, 24, 25, 26, 27, 28]
+            'indices_to_keep': [11, 12, 13, 14, 15, 16, 23, 24]
         }
         super().__init__(config)
         self.ANGLE_THRESHOLD = 25
@@ -246,10 +250,14 @@ class SquatPoseDetection(PoseDetectionBase):
 class PoseDetectionFactory:
     @staticmethod
     def get_pose_detection(exercise_type):
-        if exercise_type == 'shoulder_press':
+        if exercise_type == 'Lateral_Raises':
             return ShoulderPressPoseDetection()
         elif exercise_type == 'squat':
             return SquatPoseDetection()
+        elif exercise_type == 'bicep':
+            return BicepCurlVideoProcessor(config)
+        elif exercise_type == 'front_squat':
+            return SquatAnalyzer.process_video()
         # Add more exercise types here
         else:
             raise ValueError(f"Unsupported exercise type: {exercise_type}")

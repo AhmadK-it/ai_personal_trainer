@@ -86,7 +86,7 @@ class UserProfile(models.Model):
 
     def set_weakness_points(self, points):
         if points and len(points) > 2:
-            raise ValidationError("You can select up to 3 weakness points.")
+            raise ValidationError("You can select up to 2 weakness points.")
         self.weakness_points = ','.join(points) if points else None
 
     def get_weakness_points(self):
@@ -96,7 +96,7 @@ class UserProfile(models.Model):
         self.age = age
         self.weight = weight
         self.height = height
-        self.set_weakness_points(weakness_points)
+        self.weakness_points = weakness_points
         self.experience_level = experience_level
         self.full_clean()
         self.save()

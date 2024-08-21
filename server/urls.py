@@ -23,5 +23,6 @@ urlpatterns = [
     path('stream/', include('stream.urls')),
     path('exercises/', include('exercises.urls')),
     path('meals/', include('meal_planner.urls')),
+    path('programs/', include('program_planner.urls')),
     path('api/', include('accounts.urls')),
 ]

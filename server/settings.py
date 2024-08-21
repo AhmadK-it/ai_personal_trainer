@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'stream.apps.StreamConfig',
     'exercises.apps.ExercisesConfig',
     'meal_planner.apps.MealPlannerConfig',
+    'program_planner.apps.ProgramPlannerConfig',
     'rest_framework',
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
@@ -65,23 +66,23 @@ ASGI_APPLICATION = 'server.asgi.application'
 
 # ,('127.0.0.1', 6379),('red-cq0th9qju9rs73b35e70:0YO5p07QFMGfeNvWK141BXQOCVVWf5IS@oregon-redis.render.com',6379),
 
-CHANNEL_LAYERS = {
-    'default': {
-        'BACKEND': 'channels_redis.core.RedisChannelLayer',
-        'CONFIG': {
-            "hosts": [('redis://red-cq0th9qju9rs73b35e70:6379')],
-        },
-    },
-}
-
 # CHANNEL_LAYERS = {
 #     'default': {
 #         'BACKEND': 'channels_redis.core.RedisChannelLayer',
 #         'CONFIG': {
-#             "hosts": [('127.0.0.1', 6379)],
+#             "hosts": [('redis://red-cq0th9qju9rs73b35e70:6379')],
 #         },
 #     },
 # }
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [('127.0.0.1', 6379)],
+        },
+    },
+}
 
 
 ROOT_URLCONF = 'server.urls'
